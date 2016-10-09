@@ -1,0 +1,161 @@
+const byte delayForward = 5;
+const byte delayBackward = 5;
+const byte delayLeft = 5;
+const byte delayRight = 5;
+
+const byte leftForward = 11; // PWM
+const byte leftBackward = 10;
+const byte rightForward = 6; // PWM
+const byte rightBackward = 5;
+
+const byte LED = 13;
+const bool useSerial = true;  // TRUE se for ler comandos pela porta serial
+
+void setup() {
+
+  //Configura os pinos dos motores como saÃ­da
+  pinMode(leftForward, OUTPUT);
+  pinMode(leftBackward, OUTPUT);
+  pinMode(rightForward, OUTPUT);
+  pinMode(rightBackward, OUTPUT);
+
+  //Se for receber comandos pelo serial, configura a velocidade de envio e leitura para 9600B/sec
+  if(useSerial)
+  {
+    Serial.begin(9600);
+  }
+
+  //Desliga todos os motores
+  digitalWrite(leftForward, LOW);
+  digitalWrite(leftBackward, LOW);
+  digitalWrite(rightForward, LOW);
+  digitalWrite(rightBackward, LOW);
+
+  //Configura o pino do LED do arduino como saÃ­da
+  pinMode(LED, OUTPUT);
+  //Apaga o LED do arduino
+  digitalWrite(LED, HIGH);
+}
+
+void loop() {
+
+
+    //Se estiver configurado para ler comandos via serial
+    if(useSerial)
+    {
+      //Se houver algum sinal na porta serial
+      if(Serial.available() > 0)
+      {
+          //LÃª o que estÃ¡ no serial e aloca em inSerial
+          char inSerial = Serial.read();
+          //Limpa o buffer do serial para nÃ£o duplicar comandos
+          Serial.flush();
+          //Escreve de volta o comando recebido
+          //Serial.println(inSerial);
+          //Executa o comando, e o executa durante ?? milisegundos * o_delay_do_sentido
+          executeCommand(inSerial, 1000);
+      }
+
+    //Fim da execuÃ§Ã£o com o serial
+    }
+
+    //Se nÃ£o estiver configurado para usar os comandos via Serial
+    else
+    {
+        //Vai para frente
+        goForward();
+        //durante 3/4 de segundo
+        delay(750);
+        //Vira para esquerda
+        turnLeft();
+        //durante 3/4 de segundo
+        delay(750);
+        //Vira para a direita
+        turnRight();
+        //durante 3/4 de segundo
+        delay(750);
+        //DÃ¡ rÃ©
+        goBackward();
+        //durante 3/4 de segundo
+        delay(750);
+    //Fim da execuÃ§Ã£o sem o serial
+    }
+
+    //Freia os motores, indepedente da configuraÃ§Ã£o serial
+    brake();
+}
+
+//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
+
+void turnLeft() {
+  digitalWrite(leftForward, LOW);
+  digitalWrite(leftBackward, HIGH);
+  digitalWrite(rightForward, HIGH);
+  digitalWrite(rightBackward, LOW);
+}
+
+void turnRight() {
+  digitalWrite(leftForward, HIGH);
+  digitalWrite(leftBackward, LOW);
+  digitalWrite(rightForward, LOW);
+  digitalWrite(rightBackward, HIGH);
+}
+
+void goForward() {
+  digitalWrite(leftForward, HIGH);
+  digitalWrite(leftBackward, LOW);
+  digitalWrite(rightForward, HIGH);
+  digitalWrite(rightBackward, LOW);
+}
+
+void goBackward() {
+  digitalWrite(leftForward, LOW);
+  digitalWrite(leftBackward, HIGH);
+  digitalWrite(rightForward, LOW);
+  digitalWrite(rightBackward, HIGH);
+}
+
+void brake() {
+  digitalWrite(leftForward, LOW);
+  digitalWrite(leftBackward, LOW);
+  digitalWrite(rightForward, LOW);
+  digitalWrite(rightBackward, LOW);
+}
+
+//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
+
+
+/// Executa os comandos recebidos via serial
+void executeCommand(char command, int delayAmount) {
+
+  if(command == ' ' || delayAmount < 1) {
+    return;
+  }
+
+  switch(command)
+        {
+            case 'w':
+              goForward();
+              delay(delayAmount * delayForward);
+            break;
+
+            case 's':
+              goBackward();
+              delay(delayAmount * delayBackward);
+            break;
+
+            case 'a':
+              turnLeft();
+              delay(delayAmount * delayLeft);
+            break;
+
+            case 'd':
+              turnRight();
+              delay(delayAmount * delayRight);
+            break;
+        }
+}
